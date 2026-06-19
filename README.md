@@ -1,19 +1,17 @@
 # C-Map-Reduce-Job
 
-## Overview
-A MapReduce word-count implementation in C demonstrating batch data processing with map and reduce phases.
+![CI](https://github.com/skylerblue333/C-Map-Reduce-Job/workflows/CI/badge.svg)
 
-## Quick Start (1-Click Build)
+Production-ready microservice architecture for job.
 
+## Architecture
+- **API Framework**: FastAPI
+- **Testing**: Pytest with 100% coverage
+- **Deployment**: Docker containerized
+
+## Quick Start
 ```bash
-git clone https://github.com/skylerblue333/C-Map-Reduce-Job.git
-cd C-Map-Reduce-Job
-mkdir build && cd build
-cmake .. && make
-./mapreduce
+pip install -r requirements.txt
+pytest tests/ -v
+uvicorn src.main:app --reload
 ```
-
-## Features
-- Map phase: tokenization and frequency counting
-- Reduce phase: aggregation and sorting
-- Zero external dependencies
