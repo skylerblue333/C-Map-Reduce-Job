@@ -1,9 +1,36 @@
-name: CI
-on: [push, pull_request]
+name: word-reducer-ci
+
+on:
+  push:
+    branches: [main, "product/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  verify:
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
-      - run: gcc -o app src/main.c && echo 'Build OK'
-      - run: gcc -o test_app tests/test_main.c && ./test_app
+      - uses: actions/checkout@v4
+      - name: Release build and contract tests
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel 2
+          (cd build && ./test_app)
+      - name: Sanitizer build and contract tests
+        run: |
+          cmake -S . -B build-sanitized -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS='-fsanitize=address,undefined -fno-omit-frame-pointer'
+          cmake --build build-sanitized --parallel 2
+          (cd build-sanitized && ASAN_OPTIONS=detect_leaks=1 ./test_app)
+      - name: Build image
+        run: docker build -t sky-word-reducer:ci .
+      - name: Verify non-root image
+        run: |
+          user="$(docker image inspect sky-word-reducer:ci --format '{{.Config.User}}')"
+          test -n "$user"
+          test "$user" != "0"
+          test "$user" != "root"
+      - name: Container fixture smoke
+        run: |
+          docker run --rm -v "$PWD/tests/fixtures:/data:ro" sky-word-reducer:ci /data/words.txt | grep -q '"alpha":2'

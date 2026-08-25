@@ -1,36 +1,37 @@
 #include <stdio.h>
-#include <assert.h>
-#include <string.h>
+#include <stdlib.h>
+#include <sys/wait.h>
 
-#define MAX_ITEMS 1024
-
-typedef struct {
-    char key[64];
-    int value;
-} Item;
-
-Item store[MAX_ITEMS];
-int store_size = 0;
-
-int add_item(const char* key, int value) {
-    if (store_size >= MAX_ITEMS) return -1;
-    strncpy(store[store_size].key, key, 63);
-    store[store_size].value = value;
-    store_size++;
-    return store_size - 1;
-}
-
-int find_item(const char* key) {
-    for (int i = 0; i < store_size; i++) {
-        if (strcmp(store[i].key, key) == 0) return store[i].value;
+static int exit_code(const char *command) {
+    const int status = system(command);
+    if (status == -1 || !WIFEXITED(status)) {
+        return -1;
     }
-    return -1;
+    return WEXITSTATUS(status);
 }
 
-int main() {
-    add_item("test_key", 42);
-    assert(find_item("test_key") == 42);
-    assert(find_item("missing") == -1);
-    printf("All tests passed!\n");
+static int expect_exit(const char *command, int expected) {
+    const int actual = exit_code(command);
+    if (actual != expected) {
+        fprintf(stderr, "command failed expectation: %s (expected %d, got %d)\n", command, expected, actual);
+        return 1;
+    }
+    return 0;
+}
+
+int main(void) {
+    int failures = 0;
+    failures += expect_exit("./app ../tests/fixtures/words.txt >/tmp/word-reducer.json", 0);
+    failures += expect_exit("grep -q '\"total_words\":5' /tmp/word-reducer.json", 0);
+    failures += expect_exit("grep -q '\"unique_words\":3' /tmp/word-reducer.json", 0);
+    failures += expect_exit("grep -q '\"alpha\":2' /tmp/word-reducer.json", 0);
+    failures += expect_exit("grep -q '\"beta\":2' /tmp/word-reducer.json", 0);
+    failures += expect_exit("./app /definitely/missing >/dev/null 2>&1", 1);
+    failures += expect_exit("./app >/dev/null 2>&1", 2);
+    failures += expect_exit("./app ../tests/fixtures/long-word.txt >/dev/null 2>&1", 1);
+    if (failures != 0) {
+        return 1;
+    }
+    puts("word reducer contract tests passed");
     return 0;
 }
