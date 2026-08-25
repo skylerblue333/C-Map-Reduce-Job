@@ -1,44 +1,39 @@
-<!-- PORTFOLIO PROJECT PROFILE: maintained by the repository owner -->
+# Sky Map Reduce Core
 
-## Project profile and code-audit snapshot
+**Status: engineering beta.**
 
-**What this is:** **C-Map-Reduce-Job** is a public repository described as: “MapReduce word count implementation in C for batch data processing. #SkyCoin4444 #AI #Blockchain #DevOps #Innovation” Its dominant language signals are **C (2 files)**.
+Sky Map Reduce Core is a dependency-free C11, **single-process** map/reduce-style word-frequency component. It maps bounded text inputs into normalized tokens and reduces equal tokens into deterministic counts.
 
-**Why it has value:** Its value is best understood through the implementation evidence currently present in the repository: **16 tracked files** were observed in the shallow audit, with the source structure and existing documentation providing the project’s specific context. This README does not treat a prototype, experiment, or archive as a production system without supporting evidence.
+## Implemented
 
-**Implementation evidence:** 1 test-related file(s) detected; 1 dependency or package manifest(s) detected; 2 build/CI/infrastructure signal(s) detected; and 3 documentation or governance file(s) detected. Test filenames observed include `tests/test_main.c`. Dependency or package files include `package.json`. Build, CI, or infrastructure signals include `Dockerfile`, `.github/workflows/ci.yml`.
+- up to 256 input strings per operation
+- up to 4 KiB per input string
+- alphanumeric tokenization and lowercase normalization
+- token length capped at 63 characters
+- up to 1,024 unique tokens
+- deterministic alphabetical output ordering
+- count and lookup APIs through a reusable static C library
+- strict warnings-as-errors builds
+- deterministic CTest coverage
+- AddressSanitizer and UndefinedBehaviorSanitizer verification
+- non-root container packaging
+- CLI truth signal: `distributed_execution=false`
 
-**Current status:** The repository is tracked on the `main` branch. The existing source tree, configuration, tests, workflows, and documentation remain authoritative for supported behavior and maturity. A code audit is not a production-readiness certification, and the presence of a test or workflow file does not establish that all checks pass.
+## Build and verify
 
-**Relationship to the wider portfolio:** This repository is one focused component of the broader Skyler Blue Spillers portfolio across AI, software engineering, cloud and DevOps, cybersecurity, blockchain, finance, education, social systems, and creative work. It may provide a service boundary, implementation pattern, experiment, archive, or reusable idea for related repositories. Treat repositories as technical dependencies only where documented interfaces and verified project requirements support that relationship.
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+ctest --test-dir build --output-on-failure
+./build/sky_map_reduce_cli
+```
 
-**Quality and security note:** No obvious secret-like pattern was detected by the limited static scan; this is not a substitute for a security audit. No TODO/FIXME marker was detected in the scanned text files.
+## SKYCOIN4444 integration
 
----
+This component can be embedded where small deterministic local text aggregation is useful—for example pre-processing bounded log, content, or analytics batches. Large workloads should use a separately implemented durable/distributed execution layer rather than treating this library as cluster infrastructure.
 
-# C Map Reduce Job
+## Scope limitations
 
-![GitHub stars](https://img.shields.io/github/stars/skylerblue333/C-Map-Reduce-Job?style=flat-square)
-![GitHub license](https://img.shields.io/github/license/skylerblue333/C-Map-Reduce-Job?style=flat-square)
+This is not Hadoop, Spark, distributed MapReduce, a scheduler, a worker pool, persistent batch storage, a shuffle service, streaming analytics, a fault-tolerant execution engine, or a production deployment. It performs one bounded aggregation operation in one process and keeps results only in caller-owned memory.
 
-## 🌟 Overview
-**C-Map-Reduce-Job** is a professional-grade project within the **SkyCoin4444** ecosystem. It focuses on delivering high-value solutions in the domain of **Software Development**.
-
-## 🚀 Key Features
-- **Scalable Architecture**: Designed for enterprise-level growth and performance.
-- **Modern Standards**: Implements best practices for clean code and maintainability.
-- **Robust Integration**: Built to work seamlessly within modern cloud-native environments.
-
-## 🛠️ Technology Stack
-- **Primary Domain**: Software Development
-- **Ecosystem**: SkyCoin4444 Digital Platform
-
-## 📂 Structure
-The project is organized into a modular structure to ensure clarity and ease of development.
-
-## 👨‍💻 Author
-**Skyler Blue Spillers**
-*Professional Chess Player & Software Engineer*
-
----
-*Powered by SkyCoin4444*
+See `SECURITY.md` for input and resource boundaries.
