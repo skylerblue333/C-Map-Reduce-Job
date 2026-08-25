@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <limits.h>
+#include <stdlib.h>
 #include <string.h>
 
 static size_t bounded_strlen(const char *value, size_t max_len) {
