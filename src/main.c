@@ -1,40 +1,26 @@
+#include "map_reduce.h"
+
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#define MAX_ITEMS 1024
+int main(void) {
+    const char *inputs[] = {
+        "Sky systems are bounded systems",
+        "Map reduce maps words and reduces counts",
+        "Sky map reduce stays deterministic"
+    };
+    sky_mr_result_set result;
+    const sky_mr_result status = sky_mr_word_count(inputs, 3U, &result);
+    size_t i;
 
-typedef struct {
-    char key[64];
-    int value;
-} Item;
-
-Item store[MAX_ITEMS];
-int store_size = 0;
-
-int add_item(const char* key, int value) {
-    if (store_size >= MAX_ITEMS) return -1;
-    strncpy(store[store_size].key, key, 63);
-    store[store_size].value = value;
-    store_size++;
-    return store_size - 1;
-}
-
-int find_item(const char* key) {
-    for (int i = 0; i < store_size; i++) {
-        if (strcmp(store[i].key, key) == 0) return store[i].value;
+    if (status != SKY_MR_OK) {
+        fprintf(stderr, "map-reduce error: %s\n", sky_mr_result_string(status));
+        return 1;
     }
-    return -1;
-}
 
-int main() {
-    add_item("alpha", 100);
-    add_item("beta", 200);
-    add_item("gamma", 300);
-    
-    printf("C-Map-Reduce-Job store initialized with %d items\n", store_size);
-    printf("alpha = %d\n", find_item("alpha"));
-    printf("beta = %d\n", find_item("beta"));
-    printf("gamma = %d\n", find_item("gamma"));
+    printf("mode=single_process distributed_execution=false inputs=%zu tokens=%zu unique=%zu\n",
+           result.input_count, result.token_count, result.size);
+    for (i = 0U; i < result.size; ++i) {
+        printf("%s=%lu\n", result.entries[i].token, result.entries[i].count);
+    }
     return 0;
 }
